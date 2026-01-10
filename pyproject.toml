@@ -16,6 +16,11 @@ keywords = [
   "table structure",
   "table former",
 ]
+
+[build-system]  # ← 이 부분 추가!
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
 classifiers = [
   "Operating System :: MacOS :: MacOS X",
   "Operating System :: POSIX :: Linux",
