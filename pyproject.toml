@@ -166,6 +166,7 @@ package = true
 default-groups = "all"
 
 [tool.setuptools]
+package-dir = {"docling" = "."}
 packages = ["docling"]
 
 [tool.ruff]
