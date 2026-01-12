@@ -167,7 +167,10 @@ default-groups = "all"
 
 [tool.setuptools]
 package-dir = {"docling" = "."}
-packages = ["docling"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
 
 [tool.ruff]
 target-version = "py39"
