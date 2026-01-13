@@ -166,7 +166,8 @@ package = true
 default-groups = "all"
 
 [tool.setuptools]
-package-dir = {"docling" = "."}
+packages = {find = {where = ["."], include = ["backend*", "models*", "cli*", "datamodel*", "chunking*", "experimental*", "pipeline*", "utils*"]}}
+py-modules = ["document_converter", "document_extractor", "exceptions", "__init__"]
 
 [tool.setuptools.packages.find]
 where = ["."]
