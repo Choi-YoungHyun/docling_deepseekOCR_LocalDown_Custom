@@ -289,6 +289,97 @@ class DeepSeekOcrOptions(OcrOptions):
     )  
     local_model_path : Optional[str] =  None  
 
+class DotsOcrOptions(OcrOptions):
+    """Options for the DotsOcrOptions OCR engine.
+
+    DotsOCR is a Vision-Language Model (VLM) based OCR engine that uses
+    transformer models for document understanding and text extraction.
+    See: https://github.com/rednote-hilab/dots.ocr
+    Device Support:
+        - CUDA (NVIDIA GPU): Optimal performance with flash_attention_2 and bfloat16.
+          Uses the official 'DotsOcrOptions' model.
+        - MPS (Apple Silicon M1/M2/M3/M4): Supported via MPS-compatible model fork.
+          Requires PyTorch 2.7.0+ for the aten::_upsample_bicubic2d_aa operator.
+          Automatically switches to 'DotsOcrOptions-MPS' model with
+          float16 precision and eager attention.
+        - CPU: Not supported. Use EasyOcrOptions, TesseractOcrOptions, or
+          RapidOcrOptions for CPU-only environments.
+
+    Example:
+        >>> from docling.datamodel.pipeline_options import DeepSeekOcrOptions
+        >>> # Basic usage - auto-detects CUDA or MPS
+        >>> options = DeepSeekOcrOptions()
+        >>>
+        >>> # Custom prompt for specific OCR tasks
+        >>> options = DeepSeekOcrOptions(prompt="<image>\\nConvert to markdown.")
+    """
+
+    kind: ClassVar[Literal["dotsOcr"]] = "dotsOcr"
+
+    # DotsOCR is multilingual by default, no specific language configuration needed
+    lang: List[str] = []
+
+    # Model configuration
+    # Default is the official CUDA model; MPS users will auto-switch to MPS-compatible fork
+    repo_id: str = "rednote-hilab/dots.ocr"
+
+    # Prompt for OCR extraction
+    prompt: str = """
+            Please output the layout information from the PDF image, including each layout element's bbox, its category, and the corresponding text content within the bbox.
+
+            1. Bbox format: [x1, y1, x2, y2]
+
+            2. Layout Categories: The possible categories are ['Caption', 'Footnote', 'Formula', 'List-item', 'Page-footer', 'Page-header', 'Picture', 'Section-header', 'Table', 'Text', 'Title'].
+
+            3. Text Extraction & Formatting Rules:
+                - Picture: For the 'Picture' category, the text field should be omitted.
+                - Formula: Format its text as LaTeX.
+                - Table: Format its text as HTML.
+                - All Others (Text, Title, etc.): Format their text as Markdown.
+
+            4. Constraints:
+                - The output text must be the original text from the image, with no translation.
+                - All layout elements must be sorted according to human reading order.
+
+            5. Final Output: The entire output must be a single JSON object.
+            """
+
+    #
+    temperature: float = 0.1
+    top_p: float = 0.9
+
+    # Image processing parameters   
+    base_size: int = 1024
+    image_size: int = 640
+    crop_mode: bool = True
+
+    # Generation parameters
+    max_new_tokens: int = 4096
+    temperature: float = 0.0
+    do_sample: bool = True
+
+    # Trust remote code for loading the model
+    trust_remote_code: bool = True    
+    local_files_only : bool = True
+
+    dpi: int = 200
+    fitz_preprocess: bool = True
+    min_pixels: Optional[int] = 3136  # None이면 MIN_PIXELS 사용
+    max_pixels: Optional[int] = 11289600  # None이면 MAX_PIXELS 사용
+    prompt_mode: str = "prompt_layout_all_en"  # post_process_output에 필요
+
+    # Attention implementation:
+    # - "flash_attention_2": Default for CUDA, optimal performance
+    # - "eager": Required for MPS (auto-selected), also works on CUDA
+    # - "sdpa": NOT supported by DeepSeek-OCR
+    attn_implementation: Optional[str] = None
+
+    model_config = ConfigDict(
+        extra="forbid",
+        protected_namespaces=(),   
+    )  
+    local_model_path: Optional[str] = r"C:\dubhe_project\ai_agent\ai-doc-parser\resource\DotsOCR"
+
 class PictureDescriptionBaseOptions(BaseOptions):
     batch_size: int = 8
     scale: float = 2
